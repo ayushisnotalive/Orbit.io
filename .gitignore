@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Environment and local secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# Database & local volumes
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+pgdata/
+caddy_data/
+caddy_config/
+
+# Logs and runtime artifacts
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test coverage & reports
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+.vitest/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE configurations
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Internal agent, AI & vibe-coding scratchpads
+.agents/
+.gemini/
+.system_generated/
+.cursor/
+.windsurf/
+.antigravity/
+brain/
+scratch/
+*.tmp
+*.bak
+temp/
