@@ -191,11 +191,18 @@ uiRouter.get('/status', async (c) => {
 // 2. Login page
 uiRouter.get('/login', optionalAuth, async (c) => {
   const isReauth = c.req.query('admin_reauth') === 'true';
+  const sent = c.req.query('sent') === 'true';
   const user = c.get('user');
   if (user && !isReauth) {
     return c.redirect('/dashboard');
   }
-  return c.html(<LoginView turnstileSiteKey={env.TURNSTILE_SITE_KEY} />);
+  const flash = sent
+    ? {
+        type: 'success' as const,
+        message: 'Check your email inbox! We sent you a magic login link to sign in.',
+      }
+    : null;
+  return c.html(<LoginView flash={flash} turnstileSiteKey={env.TURNSTILE_SITE_KEY} />);
 });
 
 // 3. Authenticated Dashboard view

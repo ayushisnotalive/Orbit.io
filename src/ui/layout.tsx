@@ -10,7 +10,7 @@ export interface LayoutProps extends PropsWithChildren {
   } | null;
   activePath?: string;
   flash?: {
-    type: 'error' | 'success' | 'info';
+    type: 'error' | 'success' | 'info' | 'warning';
     message: string;
   } | null;
 }
@@ -78,11 +78,22 @@ export const Layout: FC<LayoutProps> = ({
           </div>
         </main>
 
-        <footer style="border-top: 1px solid var(--border-subtle); padding: 1.5rem 0; margin-top: auto; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
+        <footer style="border-top: 1px solid var(--border-subtle); padding: 2rem 0; margin-top: auto; font-size: 0.8125rem; color: var(--text-muted); text-align: center;">
           <div class="container">
-            <p>
+            <p style="margin-bottom: 0.75rem;">
               OrbitPing &bull; Inverted dead-man's switch monitoring for background jobs, cron, and daemons.
             </p>
+            <div style="display: flex; justify-content: center; gap: 1.25rem; font-size: 0.8125rem; flex-wrap: wrap;">
+              <a href="/pricing" style="color: var(--text-secondary); text-decoration: none;">Pricing</a>
+              <a href="/docs" style="color: var(--text-secondary); text-decoration: none;">Documentation</a>
+              <a href="/status" style="color: var(--text-secondary); text-decoration: none;">Status</a>
+              <a href="/terms" style="color: var(--text-secondary); text-decoration: none;">Terms</a>
+              <a href="/privacy" style="color: var(--text-secondary); text-decoration: none;">Privacy</a>
+              <a href="/refunds" style="color: var(--text-secondary); text-decoration: none;">Refunds</a>
+            </div>
+            <div style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--text-muted);">
+              &copy; {new Date().getFullYear()} OrbitPing. All rights reserved.
+            </div>
           </div>
         </footer>
       </body>

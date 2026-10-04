@@ -69,7 +69,7 @@ describe('Channel Routes Integration Tests', () => {
       expect(html).toContain('Primary Dev Email');
       expect(html).toContain('EMAIL');
       expect(html).toContain('Verified');
-      expect(html).toContain('/ 3'); // Free plan allows 3 channels
+      expect(html).toContain('/ 2'); // Free plan allows 2 channels
     });
   });
 
@@ -155,9 +155,9 @@ describe('Channel Routes Integration Tests', () => {
       expect(created?.verifiedAt).toBeNull();
     });
 
-    it('enforces plan quota limit (FREE: 3 channels)', async () => {
-      // Create 3 channels
-      for (let i = 1; i <= 3; i++) {
+    it('enforces plan quota limit (FREE: 2 channels)', async () => {
+      // Create 2 channels
+      for (let i = 1; i <= 2; i++) {
         await prisma.channel.create({
           data: {
             userId: testUser.id,
@@ -169,10 +169,10 @@ describe('Channel Routes Integration Tests', () => {
         });
       }
 
-      // Attempt 4th channel
+      // Attempt 3rd channel
       const form = new URLSearchParams();
       form.append('type', 'EMAIL');
-      form.append('label', 'Channel 4 Excess');
+      form.append('label', 'Channel 3 Excess');
       form.append('targetEmail', testUser.email);
 
       const res = await app.request('/app/channels', {
@@ -187,7 +187,7 @@ describe('Channel Routes Integration Tests', () => {
 
       expect(res.status).toBe(400);
       const html = await res.text();
-      expect(html).toContain('limit of 3 alert channels has been reached');
+      expect(html).toContain('limit of 2 alert channels has been reached');
     });
   });
 

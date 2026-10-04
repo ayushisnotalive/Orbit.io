@@ -35,6 +35,36 @@ const BLOCKED_IPV4_CIDRS: [number, number][] = [
 ];
 
 /**
+ * Known internal service and dangerous ports blocked for outbound webhooks to prevent port scanning.
+ */
+const BLOCKED_PORTS = new Set([
+  20, 21,    // FTP
+  22,        // SSH
+  23,        // Telnet
+  25,        // SMTP
+  53,        // DNS
+  69,        // TFTP
+  110, 995,  // POP3
+  111,       // RPC
+  135, 137, 138, 139, 445, // NetBIOS / SMB
+  143, 993,  // IMAP
+  161, 162,  // SNMP
+  389, 636,  // LDAP
+  1433, 1434, // MS SQL
+  1521,      // Oracle DB
+  2049,      // NFS
+  2375, 2376, // Docker daemon
+  3306,      // MySQL
+  3389,      // RDP
+  5432, 5433, // PostgreSQL
+  5900, 5901, // VNC
+  6379,      // Redis
+  9200, 9300, // Elasticsearch
+  11211,     // Memcached
+  27017, 27018, // MongoDB
+]);
+
+/**
  * Checks whether an IPv4 address falls within any blocked private or special CIDR range.
  */
 function isPrivateIpv4(ip: string): boolean {
@@ -132,6 +162,17 @@ export async function validateSafeUrl(
 
   if (!hostname || hostname === 'localhost') {
     return { valid: false, reason: 'Blocked target: localhost' };
+  }
+
+  // Validate port if explicitly specified
+  if (url.port) {
+    const portNum = parseInt(url.port, 10);
+    if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+      return { valid: false, reason: `Invalid port number: '${url.port}'` };
+    }
+    if (BLOCKED_PORTS.has(portNum)) {
+      return { valid: false, reason: `Blocked destination port: ${portNum}` };
+    }
   }
 
   // Check if hostname is already a direct IP

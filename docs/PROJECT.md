@@ -119,15 +119,15 @@ Uptime (HTTP) checks, customer status pages, teams, SMS, mobile app, AI features
 
 | | Free | Pro | Plus |
 |---|---|---|---|
-| Monthly price | $0 | $9 | $19 |
-| Yearly price (2 months free) | n/a | $90 | $190 |
-| Checks | 10 | 50 | 200 |
+| Monthly price | $0 | $5 | $12 |
+| Yearly price (2 months free) | n/a | $50 | $120 |
+| Checks | 5 | 50 | 200 |
 | Shortest period / cron granularity | 15 min | 1 min | 1 min |
-| Ping history kept per check | 20 | 100 | 100 |
-| Incident history kept | 30 days | 90 days | 180 days |
-| Alert channels | 3 | 10 | 25 |
+| Ping history kept per check | 10 | 100 | 100 |
+| Incident history kept | 14 days | 90 days | 180 days |
+| Alert channels | 2 | 10 | 25 |
 | Min gap between recorded success pings | 300 s | 10 s | 10 s |
-| Emails per day per user | 30 | 200 | 500 |
+| Emails per day per user | 10 | 200 | 500 |
 | Fail threshold, mute | yes | yes | yes |
 | Reminder alerts (repeat while down) | no | no | yes (release 2) |
 | Quiet hours | no | yes (release 2) | yes (release 2) |

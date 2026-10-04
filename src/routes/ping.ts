@@ -61,6 +61,7 @@ export async function extractPingPayload(req: Request): Promise<string | null> {
   if (totalBytes === 0) return null;
   const decoded = new TextDecoder().decode(Buffer.concat(chunks));
   // Strip ASCII control characters (0x00-0x1F excluding \n and \t) and DEL (0x7F)
+  // eslint-disable-next-line no-control-regex -- intentional: sanitising untrusted ping bodies
   const sanitized = decoded.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
   return sanitized.length > 0 ? sanitized.slice(0, 256) : null;
 }

@@ -1,13 +1,13 @@
 export const PLANS = {
   FREE: {
     name: 'Free',
-    checks: 10,
-    channels: 3,
+    checks: 5,
+    channels: 2,
     minPeriodSec: 900, // 15 min
     minGapSec: 300, // 5 min
-    pingHistory: 20,
-    incidentDays: 30,
-    emailsPerDay: 30,
+    pingHistory: 10,
+    incidentDays: 14,
+    emailsPerDay: 10,
     priceMonthly: 0,
     priceYearly: 0,
   },
@@ -20,8 +20,8 @@ export const PLANS = {
     pingHistory: 100,
     incidentDays: 90,
     emailsPerDay: 200,
-    priceMonthly: 9,
-    priceYearly: 90,
+    priceMonthly: 5,
+    priceYearly: 50,
   },
   PLUS: {
     name: 'Plus',
@@ -32,8 +32,8 @@ export const PLANS = {
     pingHistory: 100,
     incidentDays: 180,
     emailsPerDay: 500,
-    priceMonthly: 19,
-    priceYearly: 190,
+    priceMonthly: 12,
+    priceYearly: 120,
   },
 } as const;
 

@@ -1,6 +1,5 @@
 import type { FC } from 'hono/jsx';
 import { Layout } from '../layout.js';
-import { Navbar } from '../components/Navbar.js';
 import { PLANS, type PlanName } from '../../config/plans.js';
 
 export interface BillingViewProps {
@@ -34,10 +33,13 @@ export const BillingView: FC<BillingViewProps> = ({
   const isPastDue = user.planStatus === 'PAST_DUE';
 
   return (
-    <Layout title="Billing & Plans - OrbitPing">
-      <Navbar user={{ email: user.email, plan: user.effectivePlan }} activePath="/app/billing" />
-
-      <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <Layout
+      title="Billing & Plans - OrbitPing"
+      user={{ email: user.email, plan: user.effectivePlan, isAdmin: user.isAdmin }}
+      flash={flash}
+      activePath="/app/billing"
+    >
+      <div style="padding-bottom: 3rem;">
         {/* Flash banner */}
         {flash && (
           <div
@@ -153,11 +155,11 @@ export const BillingView: FC<BillingViewProps> = ({
               </div>
 
               <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem 0; font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.625rem;">
-                <li>✓ <strong>10</strong> active checks</li>
-                <li>✓ <strong>3</strong> alert channels</li>
+                <li>✓ <strong>5</strong> active checks</li>
+                <li>✓ <strong>2</strong> alert channels</li>
                 <li>✓ <strong>15 minute</strong> minimum interval</li>
-                <li>✓ <strong>30 days</strong> incident history</li>
-                <li>✓ 30 alert emails per day</li>
+                <li>✓ <strong>14 days</strong> incident history</li>
+                <li>✓ 10 alert emails per day</li>
               </ul>
             </div>
 
@@ -190,9 +192,9 @@ export const BillingView: FC<BillingViewProps> = ({
                 For production workers, scheduled pipelines, and engineering teams.
               </p>
               <div style="font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem;">
-                $9 <span style="font-size: 0.875rem; font-weight: normal; color: var(--text-muted);">/ month</span>
+                $5 <span style="font-size: 0.875rem; font-weight: normal; color: var(--text-muted);">/ month</span>
                 <span style="font-size: 0.8125rem; color: #38bdf8; display: block; font-weight: normal;">
-                  or $90 / year (save 17%)
+                  or $50 / year (save 17%)
                 </span>
               </div>
 
@@ -224,7 +226,7 @@ export const BillingView: FC<BillingViewProps> = ({
                     <input type="hidden" name="plan" value="PRO" />
                     <input type="hidden" name="interval" value="YEARLY" />
                     <button type="submit" class="btn btn-secondary" style="width: 100%;">
-                      Upgrade to Pro (Yearly - $90)
+                      Upgrade to Pro (Yearly - $50)
                     </button>
                   </form>
                 </div>
@@ -245,9 +247,9 @@ export const BillingView: FC<BillingViewProps> = ({
                 High-scale infrastructure and critical enterprise cron monitoring.
               </p>
               <div style="font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem;">
-                $19 <span style="font-size: 0.875rem; font-weight: normal; color: var(--text-muted);">/ month</span>
+                $12 <span style="font-size: 0.875rem; font-weight: normal; color: var(--text-muted);">/ month</span>
                 <span style="font-size: 0.8125rem; color: #38bdf8; display: block; font-weight: normal;">
-                  or $190 / year (save 17%)
+                  or $120 / year (save 17%)
                 </span>
               </div>
 
@@ -279,7 +281,7 @@ export const BillingView: FC<BillingViewProps> = ({
                     <input type="hidden" name="plan" value="PLUS" />
                     <input type="hidden" name="interval" value="YEARLY" />
                     <button type="submit" class="btn btn-secondary" style="width: 100%;">
-                      Upgrade to Plus (Yearly - $190)
+                      Upgrade to Plus (Yearly - $120)
                     </button>
                   </form>
                 </div>
@@ -287,7 +289,7 @@ export const BillingView: FC<BillingViewProps> = ({
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </Layout>
   );
 };

@@ -98,29 +98,49 @@ authRouter.get('/github/callback', async (c) => {
  * Requests a passwordless login magic link email
  */
 authRouter.post('/magic-link', async (c) => {
-  let body: { email?: string; turnstileToken?: string };
-  try {
-    body = await c.req.json();
-  } catch {
-    throw new AppError('invalid_input', 'Invalid JSON body');
+  let email: string | undefined;
+  let turnstileToken: string | undefined;
+
+  const contentType = c.req.header('content-type') || '';
+  if (contentType.includes('application/json')) {
+    try {
+      const body = await c.req.json();
+      email = body.email;
+      turnstileToken = body.turnstileToken;
+    } catch {
+      throw new AppError('invalid_input', 'Invalid JSON body');
+    }
+  } else {
+    const body = await c.req.parseBody();
+    email = typeof body.email === 'string' ? body.email : undefined;
+    turnstileToken =
+      typeof body['cf-turnstile-response'] === 'string'
+        ? body['cf-turnstile-response']
+        : typeof body.turnstileToken === 'string'
+        ? body.turnstileToken
+        : undefined;
   }
 
-  if (!body.email) {
+  if (!email) {
     throw new AppError('invalid_input', 'Email is required', undefined, { field: 'email' });
   }
 
   const clientIp = getClientIp(c.req.raw);
   const result = await requestMagicLink({
-    email: body.email,
+    email,
     clientIp,
-    turnstileToken: body.turnstileToken,
+    turnstileToken,
   });
 
-  return c.json({
-    ok: true,
-    message: 'If the email is valid, a login link has been sent.',
-    previewUrl: result.previewUrl,
-  });
+  if (c.req.header('accept')?.includes('application/json')) {
+    return c.json({
+      ok: true,
+      message: 'If the email is valid, a login link has been sent.',
+      previewUrl: result.previewUrl,
+    });
+  }
+
+  return c.redirect('/login?sent=true');
 });
 
 /**
@@ -161,7 +181,12 @@ authRouter.post('/logout', requireAuth, async (c) => {
   clearSessionCookie(c);
 
   logger.info({ event: 'auth.logout', userId: c.get('user').id });
-  return c.json({ ok: true });
+
+  if (c.req.header('accept')?.includes('application/json')) {
+    return c.json({ ok: true });
+  }
+
+  return c.redirect('/login');
 });
 
 /**
@@ -174,7 +199,12 @@ authRouter.post('/logout-all', requireAuth, async (c) => {
   clearSessionCookie(c);
 
   logger.info({ event: 'auth.logout_all', userId: user.id, revokedCount: count });
-  return c.json({ ok: true, revokedCount: count });
+
+  if (c.req.header('accept')?.includes('application/json')) {
+    return c.json({ ok: true, revokedCount: count });
+  }
+
+  return c.redirect('/login');
 });
 
 /**

@@ -23,7 +23,7 @@ export const Navbar: FC<NavbarProps> = ({ user, activePath = '/dashboard' }) => 
           <span>OrbitPing</span>
         </a>
 
-        {user && (
+        {user ? (
           <div class="nav-links">
             <a
               href="/dashboard"
@@ -53,12 +53,31 @@ export const Navbar: FC<NavbarProps> = ({ user, activePath = '/dashboard' }) => 
               </a>
             )}
             <a
-              href="https://github.com/ayushisnotalive/Orbit.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="nav-link"
+              href="/docs"
+              class={`nav-link ${activePath.startsWith('/docs') ? 'active' : ''}`}
             >
               Docs
+            </a>
+          </div>
+        ) : (
+          <div class="nav-links">
+            <a
+              href="/pricing"
+              class={`nav-link ${activePath === '/pricing' ? 'active' : ''}`}
+            >
+              Pricing
+            </a>
+            <a
+              href="/docs"
+              class={`nav-link ${activePath === '/docs' ? 'active' : ''}`}
+            >
+              Docs
+            </a>
+            <a
+              href="/status"
+              class={`nav-link ${activePath === '/status' ? 'active' : ''}`}
+            >
+              Status
             </a>
           </div>
         )}

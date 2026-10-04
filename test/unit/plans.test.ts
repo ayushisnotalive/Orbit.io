@@ -3,9 +3,16 @@ import { PLANS, getEffectivePlan } from '../../src/config/plans.js';
 
 describe('Plan Configuration', () => {
   it('should define correct limits for FREE, PRO, and PLUS', () => {
-    expect(PLANS.FREE.checks).toBe(10);
+    expect(PLANS.FREE.checks).toBe(5);
     expect(PLANS.PRO.checks).toBe(50);
     expect(PLANS.PLUS.checks).toBe(200);
+
+    expect(PLANS.FREE.channels).toBe(2);
+    expect(PLANS.PRO.channels).toBe(10);
+    expect(PLANS.PLUS.channels).toBe(25);
+
+    expect(PLANS.PRO.priceMonthly).toBe(5);
+    expect(PLANS.PLUS.priceMonthly).toBe(12);
 
     expect(PLANS.FREE.minPeriodSec).toBe(900);
     expect(PLANS.PRO.minPeriodSec).toBe(60);

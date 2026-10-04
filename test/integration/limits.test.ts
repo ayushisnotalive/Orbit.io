@@ -23,8 +23,8 @@ describe('Advisory Locked Plan Limits (Integration)', () => {
     await prisma.$disconnect();
   });
 
-  it('should successfully create checks up to the Free plan limit (10)', async () => {
-    for (let i = 0; i < 10; i++) {
+  it('should successfully create checks up to the Free plan limit (5)', async () => {
+    for (let i = 0; i < 5; i++) {
       const res = await createCheckGuarded({
         userId: testUserId,
         plan: 'FREE',
@@ -37,7 +37,7 @@ describe('Advisory Locked Plan Limits (Integration)', () => {
     }
 
     const count = await prisma.check.count({ where: { userId: testUserId } });
-    expect(count).toBe(10);
+    expect(count).toBe(5);
   });
 
   it('should reject check creation beyond the Free plan limit', async () => {
@@ -64,8 +64,8 @@ describe('Advisory Locked Plan Limits (Integration)', () => {
     ).rejects.toThrow(/minimum period of 900s/);
   });
 
-  it('should enforce channel limits for Free plan (3 channels max)', async () => {
-    for (let i = 0; i < 3; i++) {
+  it('should enforce channel limits for Free plan (2 channels max)', async () => {
+    for (let i = 0; i < 2; i++) {
       const res = await createChannelGuarded({
         userId: testUserId,
         plan: 'FREE',
@@ -84,6 +84,6 @@ describe('Advisory Locked Plan Limits (Integration)', () => {
         label: 'Over Limit Channel',
         targetEnc: 'v1.test_target',
       }),
-    ).rejects.toThrow(/limit of 3 alert channels has been reached/);
+    ).rejects.toThrow(/limit of 2 alert channels has been reached/);
   });
 });

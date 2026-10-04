@@ -1,6 +1,5 @@
 import type { FC } from 'hono/jsx';
 import { Layout } from '../../layout.js';
-import { Navbar } from '../../components/Navbar.js';
 import type { Plan, PlanSource, PlanStatus } from '@prisma/client';
 
 export interface AdminUserRow {
@@ -42,10 +41,8 @@ export const AdminUsersView: FC<AdminUsersProps> = ({
   flash,
 }) => {
   return (
-    <Layout title="Admin User Management - OrbitPing">
-      <Navbar user={user} activePath="/admin/users" />
-
-      <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <Layout title="Admin User Management - OrbitPing" user={user} flash={flash} activePath="/admin">
+      <div style="padding-bottom: 3rem;">
         {/* Navigation & Header */}
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 2rem;">
           <div>
@@ -279,7 +276,7 @@ export const AdminUsersView: FC<AdminUsersProps> = ({
             </div>
           </div>
         )}
-      </main>
+      </div>
     </Layout>
   );
 };

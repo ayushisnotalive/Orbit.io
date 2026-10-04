@@ -1,6 +1,5 @@
 import type { FC } from 'hono/jsx';
 import { Layout } from '../../layout.js';
-import { Navbar } from '../../components/Navbar.js';
 import type { SystemTelemetry } from '../../../admin/telemetry.js';
 
 export interface AdminDashboardProps {
@@ -16,10 +15,8 @@ export const AdminDashboardView: FC<AdminDashboardProps> = ({ user, telemetry })
   const scanner = telemetry.scanner;
 
   return (
-    <Layout title="Admin Console - OrbitPing">
-      <Navbar user={user} activePath="/admin" />
-
-      <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+    <Layout title="Admin Console - OrbitPing" user={user} activePath="/admin">
+      <div style="padding-bottom: 3rem;">
         {/* Admin Navigation Bar */}
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 2rem;">
           <div>
@@ -153,7 +150,7 @@ export const AdminDashboardView: FC<AdminDashboardProps> = ({ user, telemetry })
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </Layout>
   );
 };

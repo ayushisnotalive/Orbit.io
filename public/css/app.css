@@ -224,6 +224,18 @@ code, pre {
   color: #6ee7b7;
 }
 
+.flash-warning {
+  background: var(--status-paused-bg);
+  border: 1px solid var(--status-paused-border);
+  color: #fde68a;
+}
+
+.flash-info {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+}
+
 /* Cards & Surfaces */
 .card {
   background: var(--bg-surface);
@@ -693,10 +705,44 @@ code, pre {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .navbar {
+    height: auto;
+    padding: 0.625rem 0;
+  }
+  .navbar-inner {
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
   .nav-links {
-    display: none;
+    order: 3;
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    gap: 0.375rem;
+    padding-top: 0.375rem;
+    border-top: 1px solid var(--border-subtle);
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-link {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+  }
+  .nav-user {
+    gap: 0.5rem;
   }
   .stats-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
   }
 }
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .brand span {
+    font-size: 1.125rem;
+  }
+}
+

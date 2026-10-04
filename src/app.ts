@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { serveStatic } from '@hono/node-server/serve-static';
+import { secureHeaders } from 'hono/secure-headers';
 import { AppError } from './lib/errors.js';
 import { logger } from './lib/logger.js';
 import { prisma } from './db/client.js';
@@ -14,6 +15,22 @@ import { adminRouter } from './routes/admin.js';
 import { csrfProtection } from './auth/csrf.js';
 
 export const app = new Hono();
+
+// Defense-in-depth Security Headers
+app.use(
+  '*',
+  secureHeaders({
+    xFrameOptions: 'DENY',
+    referrerPolicy: 'strict-origin-when-cross-origin',
+    crossOriginResourcePolicy: false,
+    permissionsPolicy: {
+      camera: [],
+      microphone: [],
+      geolocation: [],
+      payment: [],
+    },
+  }),
+);
 
 // Global request logger and error handler
 app.use('*', async (c, next) => {
