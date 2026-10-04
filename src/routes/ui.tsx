@@ -105,7 +105,7 @@ uiRouter.get('/privacy', async (c) => {
           content: 'This Privacy Policy sets out how OrbitPing (Data Fiduciary) processes, protects, and respects your personal digital data in strict compliance with the Digital Personal Data Protection Act, 2023 (India) and global data protection principles. We practice strict data minimization: we collect only what is strictly necessary to monitor your background tasks and alert you when they fail.',
         },
         {
-          heading: '2. Data We Collect & Processing Purposes',
+          heading: '2. Information We Collect & Processing Purposes',
           content: '• Account Identification: Email address and GitHub ID/Profile strictly for authentication and account security.\n• Notification Endpoints: Webhook URLs (Discord, Slack, custom), Telegram chat IDs, or alert email destinations strictly for incident dispatch.\n• Telemetry Logs: Timestamp of pings, runtime duration in milliseconds, process exit code, and failure error tails strictly capped at 256 bytes.\n• We DO NOT collect, store, or process user passwords, credit card numbers, or internal task payloads.',
         },
         {
