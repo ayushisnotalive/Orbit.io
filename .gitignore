@@ -56,7 +56,7 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# Internal agent, AI & vibe-coding scratchpads
+# Internal agent, AI & planning files
 .agents/
 .gemini/
 .system_generated/
@@ -68,3 +68,6 @@ scratch/
 *.tmp
 *.bak
 temp/
+.planning/
+GEMINI.md
+PHASES.md

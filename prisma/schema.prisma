@@ -1,0 +1,369 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Plan {
+  FREE
+  PRO
+  PLUS
+}
+
+enum PlanStatus {
+  NONE
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum PlanSource {
+  PROVIDER
+  ADMIN
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum ScheduleType {
+  PERIOD
+  CRON
+}
+
+enum CheckStatus {
+  NEW
+  UP
+  DOWN
+  PAUSED
+}
+
+enum PingKind {
+  SUCCESS
+  START
+  FAIL
+}
+
+enum ChannelType {
+  EMAIL
+  TELEGRAM
+  SLACK
+  DISCORD
+  WEBHOOK
+}
+
+enum IncidentReason {
+  MISSED
+  FAIL
+  NEVER
+}
+
+enum AlertKind {
+  DOWN
+  RECOVERED
+  REMINDER
+}
+
+enum AlertStatus {
+  PENDING
+  SENT
+  FAILED
+  SUPPRESSED
+}
+
+enum NoticeLevel {
+  INFO
+  DEGRADED
+  OUTAGE
+}
+
+model User {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String            @unique
+  emailVerifiedAt       DateTime?         @map("email_verified_at") @db.Timestamptz(3)
+  githubId              String?           @unique @map("github_id")
+  name                  String?
+  timezone              String            @default("UTC")
+  plan                  Plan              @default(FREE)
+  planStatus            PlanStatus        @default(NONE) @map("plan_status")
+  planSource            PlanSource        @default(PROVIDER) @map("plan_source")
+  adminPlanUntil        DateTime?         @map("admin_plan_until") @db.Timestamptz(3)
+  billingInterval       BillingInterval?  @map("billing_interval")
+  billingCustomerId     String?           @map("billing_customer_id")
+  billingSubscriptionId String?           @map("billing_subscription_id")
+  planRenewsAt          DateTime?         @map("plan_renews_at") @db.Timestamptz(3)
+  cancelAtPeriodEnd     Boolean           @default(false) @map("cancel_at_period_end")
+  pastDueSince          DateTime?         @map("past_due_since") @db.Timestamptz(3)
+  founding              Boolean           @default(false)
+  isAdmin               Boolean           @default(false) @map("is_admin")
+  disabledAt            DateTime?         @map("disabled_at") @db.Timestamptz(3)
+  disabledReason        String?           @map("disabled_reason")
+  quietStart            Int?              @map("quiet_start")
+  quietEnd              Int?              @map("quiet_end")
+  marketingEmails       Boolean           @default(false) @map("marketing_emails")
+  createdAt             DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastLoginAt           DateTime?         @map("last_login_at") @db.Timestamptz(3)
+  deletedAt             DateTime?         @map("deleted_at") @db.Timestamptz(3)
+
+  sessions              Session[]
+  checks                Check[]
+  channels              Channel[]
+  apiKeys               ApiKey[]
+  usage                 UsageDaily[]
+
+  @@index([plan, planStatus])
+  @@map("users")
+}
+
+model Session {
+  idHash      String    @id @map("id_hash")
+  userId      String    @map("user_id") @db.Uuid
+  userAgent   String?   @map("user_agent")
+  ipHash      String?   @map("ip_hash")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSeenAt  DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(3)
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  adminAuthAt DateTime? @map("admin_auth_at") @db.Timestamptz(3)
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model LoginToken {
+  tokenHash String    @id @map("token_hash")
+  email     String
+  ipHash    String?   @map("ip_hash")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+
+  @@index([email, createdAt])
+  @@map("login_tokens")
+}
+
+model Check {
+  id                        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                    String        @map("user_id") @db.Uuid
+  pingUuid                  String        @unique @default(dbgenerated("gen_random_uuid()")) @map("ping_uuid") @db.Uuid
+  slug                      String?
+  name                      String        @db.VarChar(80)
+  description               String?       @db.VarChar(500)
+  tags                      String[]      @default([])
+  scheduleType              ScheduleType  @map("schedule_type")
+  periodSeconds             Int?          @map("period_seconds")
+  cronExpr                  String?       @map("cron_expr") @db.VarChar(100)
+  timezone                  String        @default("UTC")
+  graceSeconds              Int           @default(300) @map("grace_seconds")
+  firstPingDeadlineSeconds  Int           @default(86400) @map("first_ping_deadline_seconds")
+  failThreshold             Int           @default(1) @map("fail_threshold")
+  consecutiveFails          Int           @default(0) @map("consecutive_fails")
+  maxRuntimeSeconds         Int?          @map("max_runtime_seconds")
+  reminderIntervalSeconds   Int?          @map("reminder_interval_seconds")
+  status                    CheckStatus   @default(NEW)
+  lastPingAt                DateTime?     @map("last_ping_at") @db.Timestamptz(3)
+  lastStartAt               DateTime?     @map("last_start_at") @db.Timestamptz(3)
+  lastRunId                 String?       @map("last_run_id")
+  lastDurationMs            Int?          @map("last_duration_ms")
+  nextExpectedAt            DateTime?     @map("next_expected_at") @db.Timestamptz(3)
+  alertAfter                DateTime?     @map("alert_after") @db.Timestamptz(3)
+  downSince                 DateTime?     @map("down_since") @db.Timestamptz(3)
+  mutedUntil                DateTime?     @map("muted_until") @db.Timestamptz(3)
+  pingCount                 Int           @default(0) @map("ping_count")
+  pausedAt                  DateTime?     @map("paused_at") @db.Timestamptz(3)
+  createdAt                 DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                 DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user                      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pings                     Ping[]
+  incidents                 Incident[]
+  channels                  CheckChannel[]
+
+  @@index([userId])
+  @@map("checks")
+}
+
+model Ping {
+  id         BigInt   @id @default(autoincrement())
+  checkId    String   @map("check_id") @db.Uuid
+  ts         DateTime @default(now()) @db.Timestamptz(3)
+  kind       PingKind
+  runId      String?  @map("run_id")
+  exitCode   Int?     @map("exit_code")
+  durationMs Int?     @map("duration_ms")
+  body       String?  @db.VarChar(256)
+
+  check      Check    @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@index([checkId, ts(sort: Desc)])
+  @@map("pings")
+}
+
+model Channel {
+  id                  String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String       @map("user_id") @db.Uuid
+  type                ChannelType
+  label               String       @db.VarChar(60)
+  targetEnc           String       @map("target_enc")
+  signingSecret       String?      @map("signing_secret")
+  verifiedAt          DateTime?    @map("verified_at") @db.Timestamptz(3)
+  verifyTokenHash     String?      @map("verify_token_hash")
+  verifyExpiresAt     DateTime?    @map("verify_expires_at") @db.Timestamptz(3)
+  consecutiveFailures Int          @default(0) @map("consecutive_failures")
+  lastError           String?      @map("last_error")
+  disabledAt          DateTime?    @map("disabled_at") @db.Timestamptz(3)
+  disabledReason      String?      @map("disabled_reason")
+  createdAt           DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checks              CheckChannel[]
+  alerts              Alert[]
+
+  @@index([userId])
+  @@map("channels")
+}
+
+model CheckChannel {
+  checkId   String  @map("check_id") @db.Uuid
+  channelId String  @map("channel_id") @db.Uuid
+
+  check     Check   @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@id([checkId, channelId])
+  @@map("check_channels")
+}
+
+model Incident {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  checkId        String         @map("check_id") @db.Uuid
+  reason         IncidentReason
+  startedAt      DateTime       @map("started_at") @db.Timestamptz(3)
+  resolvedAt     DateTime?      @map("resolved_at") @db.Timestamptz(3)
+  resolvedBy     String?        @map("resolved_by")
+  lastReminderAt DateTime?      @map("last_reminder_at") @db.Timestamptz(3)
+
+  check          Check          @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  alerts         Alert[]
+
+  @@index([checkId, startedAt(sort: Desc)])
+  @@map("incidents")
+}
+
+model Alert {
+  id            BigInt         @id @default(autoincrement())
+  incidentId    String         @map("incident_id") @db.Uuid
+  channelId     String         @map("channel_id") @db.Uuid
+  kind          AlertKind
+  seq           Int            @default(0)
+  checkName     String         @map("check_name")
+  reason        IncidentReason
+  status        AlertStatus    @default(PENDING)
+  attempts      Int            @default(0)
+  nextAttemptAt DateTime       @map("next_attempt_at") @db.Timestamptz(3)
+  lastError     String?        @map("last_error")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  sentAt        DateTime?      @map("sent_at") @db.Timestamptz(3)
+
+  incident      Incident       @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  channel       Channel        @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, channelId, kind, seq])
+  @@map("alerts")
+}
+
+model UsageDaily {
+  userId       String @map("user_id") @db.Uuid
+  day          String @db.VarChar(10)
+  emailsSent   Int    @default(0) @map("emails_sent")
+  webhooksSent Int    @default(0) @map("webhooks_sent")
+  testsSent    Int    @default(0) @map("tests_sent")
+
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, day])
+  @@map("usage_daily")
+}
+
+model GlobalUsageDaily {
+  day        String @id @db.VarChar(10)
+  emailsSent Int    @default(0) @map("emails_sent")
+
+  @@map("global_usage_daily")
+}
+
+model AuditLog {
+  id           BigInt   @id @default(autoincrement())
+  userId       String?  @map("user_id") @db.Uuid
+  targetUserId String?  @map("target_user_id") @db.Uuid
+  event        String
+  ipHash       String?  @map("ip_hash")
+  meta         Json?
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([targetUserId, createdAt(sort: Desc)])
+  @@map("audit_log")
+}
+
+model BillingEvent {
+  eventId    String   @id @map("event_id")
+  type       String
+  userId     String?  @map("user_id") @db.Uuid
+  payload    Json?
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+
+  @@map("billing_events")
+}
+
+model ApiKey {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  keyHash    String    @unique @map("key_hash")
+  keyPrefix  String    @map("key_prefix")
+  label      String
+  readOnly   Boolean   @default(false) @map("read_only")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(3)
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+model AnalyticsEvent {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  name      String
+  props     Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([name, createdAt])
+  @@map("analytics_events")
+}
+
+model StatusNotice {
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  level      NoticeLevel
+  title      String
+  body       String?
+  auto       Boolean     @default(false)
+  startedAt  DateTime    @default(now()) @map("started_at") @db.Timestamptz(3)
+  resolvedAt DateTime?   @map("resolved_at") @db.Timestamptz(3)
+
+  @@map("status_notices")
+}
+
+model SystemState {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("system_state")
+}

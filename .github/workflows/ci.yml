@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: orbitping
+          POSTGRES_PASSWORD: orbitping_dev_password
+          POSTGRES_DB: orbitping_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://orbitping:orbitping_dev_password@localhost:5432/orbitping_dev?schema=public
+      DIRECT_URL: postgresql://orbitping:orbitping_dev_password@localhost:5432/orbitping_dev?schema=public
+      SESSION_SECRET: ci_session_secret_32_characters_long_for_tests
+      ENC_KEY_V1: Y2lfZW5jX2tleV92MV8zMmJ5dGVzX2xvbmdfMTIzNA==
+      ENC_KEY_CURRENT: v1
+      APP_URL: http://localhost:3000
+      PING_HOST: http://localhost:3000
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Apply Database Migrations
+        run: npx prisma migrate deploy
+
+      - name: Typecheck & Compile
+        run: npm run build
+
+      - name: Run Test Suite
+        run: npx vitest run
