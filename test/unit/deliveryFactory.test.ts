@@ -12,6 +12,9 @@ import type { AlertChannel } from '@prisma/client';
 import { WebhookAdapter } from '../../src/jobs/adapters/webhook.js';
 import { SlackAdapter } from '../../src/jobs/adapters/slack.js';
 import { DiscordAdapter } from '../../src/jobs/adapters/discord.js';
+import { EmailAdapter } from '../../src/jobs/adapters/email.js';
+import { TelegramAdapter } from '../../src/jobs/adapters/telegram.js';
+import { env } from '../../src/env.js';
 
 describe('Delivery Adapter Factory', () => {
   beforeEach(() => {
@@ -20,9 +23,13 @@ describe('Delivery Adapter Factory', () => {
   });
 
   describe('getDeliveryAdapter', () => {
-    it('returns stub adapter for EMAIL by default', () => {
+    it('returns appropriate adapter for EMAIL by default', () => {
       const adapter = getDeliveryAdapter('EMAIL');
-      expect(adapter).toBeInstanceOf(StubDeliveryAdapter);
+      if (env.RESEND_API_KEY) {
+        expect(adapter).toBeInstanceOf(EmailAdapter);
+      } else {
+        expect(adapter).toBeInstanceOf(StubDeliveryAdapter);
+      }
       expect(adapter.channel).toBe('EMAIL');
     });
 
@@ -32,9 +39,13 @@ describe('Delivery Adapter Factory', () => {
       expect(getDeliveryAdapter('DISCORD')).toBeInstanceOf(DiscordAdapter);
     });
 
-    it('returns stub adapter for TELEGRAM by default', () => {
+    it('returns appropriate adapter for TELEGRAM by default', () => {
       const adapter = getDeliveryAdapter('TELEGRAM');
-      expect(adapter).toBeInstanceOf(StubDeliveryAdapter);
+      if (env.TELEGRAM_BOT_TOKEN) {
+        expect(adapter).toBeInstanceOf(TelegramAdapter);
+      } else {
+        expect(adapter).toBeInstanceOf(StubDeliveryAdapter);
+      }
       expect(adapter.channel).toBe('TELEGRAM');
     });
 
@@ -121,7 +132,11 @@ describe('Delivery Adapter Factory', () => {
 
       // After clearing, getDeliveryAdapter should reinitialize with defaults
       const adapter = getDeliveryAdapter('EMAIL');
-      expect(adapter).toBeInstanceOf(StubDeliveryAdapter);
+      if (env.RESEND_API_KEY) {
+        expect(adapter).toBeInstanceOf(EmailAdapter);
+      } else {
+        expect(adapter).toBeInstanceOf(StubDeliveryAdapter);
+      }
     });
   });
 });
