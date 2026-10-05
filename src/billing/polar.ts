@@ -37,6 +37,8 @@ export class PolarBillingProvider implements BillingProvider {
           },
           body: JSON.stringify({
             product_price_id: priceId,
+            product_id: priceId,
+            products: priceId ? [priceId] : undefined,
             customer_email: options.userEmail,
             metadata: {
               userId: options.userId,
@@ -59,7 +61,10 @@ export class PolarBillingProvider implements BillingProvider {
     }
 
     const params = new URLSearchParams();
-    if (priceId) params.set('price_id', priceId);
+    if (priceId) {
+      params.set('price_id', priceId);
+      params.set('product_id', priceId);
+    }
     params.set('customer_email', options.userEmail);
     params.set('metadata[userId]', options.userId);
     params.set('metadata[plan]', options.plan);
