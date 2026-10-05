@@ -54,6 +54,44 @@ describe('Billing Provider Adapters', () => {
       expect(isValid).toBe(true);
     });
 
+    it('verifies valid Standard Webhooks (whsec_) signature', () => {
+      const rawSecretBytes = Buffer.from('01234567890123456789012345678901', 'utf8');
+      const whsecSecret = `whsec_${rawSecretBytes.toString('base64')}`;
+      (env as any).BILLING_WEBHOOK_SECRET = whsecSecret;
+
+      const body = JSON.stringify({ type: 'subscription.created', id: 'evt_standard' });
+      const webhookId = 'msg_2rX89q1X5K6W4L8M';
+      const webhookTimestamp = '1735700000';
+      const toSign = `${webhookId}.${webhookTimestamp}.${body}`;
+      const expectedBase64 = crypto.createHmac('sha256', rawSecretBytes).update(toSign).digest('base64');
+
+      const isValid = provider.verifyWebhookSignature(body, {
+        'webhook-id': webhookId,
+        'webhook-timestamp': webhookTimestamp,
+        'webhook-signature': `v1,${expectedBase64}`,
+      });
+      expect(isValid).toBe(true);
+    });
+
+    it('verifies Standard Webhooks with space-separated signatures', () => {
+      const rawSecretBytes = Buffer.from('01234567890123456789012345678901', 'utf8');
+      const whsecSecret = `whsec_${rawSecretBytes.toString('base64')}`;
+      (env as any).BILLING_WEBHOOK_SECRET = whsecSecret;
+
+      const body = JSON.stringify({ type: 'subscription.updated', id: 'evt_multi' });
+      const webhookId = 'msg_multi_123';
+      const webhookTimestamp = '1735700100';
+      const toSign = `${webhookId}.${webhookTimestamp}.${body}`;
+      const expectedBase64 = crypto.createHmac('sha256', rawSecretBytes).update(toSign).digest('base64');
+
+      const isValid = provider.verifyWebhookSignature(body, {
+        'webhook-id': webhookId,
+        'webhook-timestamp': webhookTimestamp,
+        'webhook-signature': `v1,dummy_invalid_sig v1,${expectedBase64}`,
+      });
+      expect(isValid).toBe(true);
+    });
+
     it('rejects invalid signature', () => {
       const body = JSON.stringify({ type: 'subscription.created' });
       const isValid = provider.verifyWebhookSignature(body, {

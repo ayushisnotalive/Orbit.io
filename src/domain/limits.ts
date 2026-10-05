@@ -92,7 +92,7 @@ export async function createCheckGuarded(
       id: result[0].id,
       pingUuid: result[0].ping_uuid,
     };
-  });
+  }, { maxWait: 10000, timeout: 20000 });
 }
 
 /**
@@ -132,5 +132,5 @@ export async function createChannelGuarded(
     return {
       id: result[0].id,
     };
-  });
+  }, { maxWait: 10000, timeout: 20000 });
 }

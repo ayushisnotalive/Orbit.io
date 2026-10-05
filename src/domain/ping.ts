@@ -209,7 +209,7 @@ export async function handlePing(
           alertAfter: schedule.alertAfter,
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     return {
       ok: true,
@@ -303,7 +303,7 @@ export async function handlePing(
         },
       });
     }
-  });
+  }, { maxWait: 10000, timeout: 20000 });
 
   return {
     ok: true,

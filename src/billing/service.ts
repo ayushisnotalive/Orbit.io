@@ -134,7 +134,7 @@ export async function handleBillingWebhook(
         });
       }
     }
-  });
+  }, { maxWait: 10000, timeout: 20000 });
 
   logger.info(
     { eventId: event.id, kind: event.kind, userId: targetUser?.id, provider: provider.name },

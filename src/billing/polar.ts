@@ -102,58 +102,86 @@ export class PolarBillingProvider implements BillingProvider {
 
     const bodyBuffer = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody, 'utf8');
 
+    // Extract all candidate signature tokens:
+    // Supports:
+    // - Space-separated Svix style: "v1,abc v1,def"
+    // - Comma-separated: "v1=abc, v1=def" or "v1,abc, v1,def"
+    // - Direct string: "abc", "v1=abc", "v1,abc"
+    const rawParts = signature.split(/\s+/).flatMap((part) => part.split(','));
+    const cleanTokens: string[] = [];
+    for (const raw of rawParts) {
+      const trimmed = raw.trim();
+      if (!trimmed || trimmed === 'v1') continue;
+      if (trimmed.startsWith('v1=') || trimmed.startsWith('v1,')) {
+        cleanTokens.push(trimmed.slice(3));
+      } else {
+        cleanTokens.push(trimmed);
+      }
+    }
+
+    if (cleanTokens.length === 0) return false;
+
+    const safeCompareHex = (token: string, hexDigest: string): boolean => {
+      if (token.length !== 64 || !/^[0-9a-fA-F]{64}$/.test(token)) return false;
+      return crypto.timingSafeEqual(
+        Buffer.from(token.toLowerCase(), 'utf8'),
+        Buffer.from(hexDigest.toLowerCase(), 'utf8'),
+      );
+    };
+
+    const safeCompareBase64 = (token: string, b64Digest: string): boolean => {
+      if (token.length !== b64Digest.length) return false;
+      return crypto.timingSafeEqual(
+        Buffer.from(token, 'utf8'),
+        Buffer.from(b64Digest, 'utf8'),
+      );
+    };
+
     // 1. Support Standard Webhooks (Svix/Polar specification with webhook-id and webhook-timestamp)
     const webhookId = headers['webhook-id'];
     const webhookTimestamp = headers['webhook-timestamp'];
     if (webhookId && webhookTimestamp) {
-      const keyBuffer = secret.startsWith('whsec_')
-        ? Buffer.from(secret.slice(6), 'base64')
-        : Buffer.from(secret, 'utf8');
-
       const toSign = `${webhookId}.${webhookTimestamp}.${bodyBuffer.toString('utf8')}`;
-      const expectedBase64 = crypto.createHmac('sha256', keyBuffer).update(toSign).digest('base64');
-
-      const tokens = signature.split(/[\s,]+/).map((t) => t.trim());
-      for (const token of tokens) {
-        const cleanToken = token.startsWith('v1=') ? token.slice(3) : token;
+      const svixKeys: (Buffer | string)[] = [];
+      if (secret.startsWith('whsec_')) {
         try {
-          if (cleanToken.length === expectedBase64.length) {
-            if (crypto.timingSafeEqual(Buffer.from(cleanToken), Buffer.from(expectedBase64))) {
-              return true;
-            }
-          }
+          svixKeys.push(Buffer.from(secret.slice(6), 'base64'));
         } catch {
           // Continue
         }
       }
+      svixKeys.push(secret);
+
+      for (const key of svixKeys) {
+        const expectedBase64 = crypto.createHmac('sha256', key).update(toSign).digest('base64');
+        const expectedHex = crypto.createHmac('sha256', key).update(toSign).digest('hex');
+        for (const token of cleanTokens) {
+          if (safeCompareBase64(token, expectedBase64) || safeCompareHex(token, expectedHex)) {
+            return true;
+          }
+        }
+      }
     }
 
-    // 2. Support standard direct HMAC-SHA256 (hex and base64)
-    const secretKey = secret.startsWith('whsec_') ? Buffer.from(secret.slice(6), 'base64') : secret;
-    const hmacHex = crypto.createHmac('sha256', secretKey).update(bodyBuffer).digest('hex');
-    const hmacBase64 = crypto.createHmac('sha256', secretKey).update(bodyBuffer).digest('base64');
-
-    // Handle comma or space-separated format (e.g. v1,hash)
-    const sigTokens = signature.split(/[\s,]+/).map((t) => t.trim());
-    for (const token of sigTokens) {
-      const cleanToken = token.startsWith('v1=') ? token.slice(3) : token;
+    // 2. Support direct HMAC-SHA256 (hex and base64) over raw payload
+    const directKeys: (Buffer | string)[] = [secret];
+    if (secret.startsWith('whsec_')) {
       try {
-        if (cleanToken.length === hmacHex.length) {
-          if (crypto.timingSafeEqual(Buffer.from(cleanToken, 'hex'), Buffer.from(hmacHex, 'hex'))) {
-            return true;
-          }
-        }
-      } catch {
-        // Continue to base64 check
-      }
-      try {
-        if (cleanToken.length === hmacBase64.length) {
-          if (crypto.timingSafeEqual(Buffer.from(cleanToken), Buffer.from(hmacBase64))) {
-            return true;
-          }
-        }
+        directKeys.push(Buffer.from(secret.slice(6), 'base64'));
       } catch {
         // Continue
+      }
+      directKeys.push(secret.slice(6));
+    }
+
+    for (const key of directKeys) {
+      const hmacHex = crypto.createHmac('sha256', key).update(bodyBuffer).digest('hex');
+      const hmacBase64 = crypto.createHmac('sha256', key).update(bodyBuffer).digest('base64');
+
+      for (const token of cleanTokens) {
+        if (safeCompareHex(token, hmacHex) || safeCompareBase64(token, hmacBase64)) {
+          return true;
+        }
       }
     }
 
