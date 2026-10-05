@@ -218,24 +218,28 @@ export async function startAlertWorker(
   process.on('SIGTERM', handleShutdown);
   process.on('SIGINT', handleShutdown);
 
-  // Main polling loop
-  while (workerRunning && !shutdownRequested) {
-    try {
-      await pollAndProcessAlerts(config);
-    } catch (error) {
-      logger.error({
-        event: 'worker.error',
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+  try {
+    // Main polling loop
+    while (workerRunning && !shutdownRequested) {
+      try {
+        await pollAndProcessAlerts(config);
+      } catch (error) {
+        logger.error({
+          event: 'worker.error',
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+      }
+
+      // Wait for next poll interval
+      await sleep(config.pollIntervalMs);
     }
-
-    // Wait for next poll interval
-    await sleep(config.pollIntervalMs);
+  } finally {
+    process.off('SIGTERM', handleShutdown);
+    process.off('SIGINT', handleShutdown);
+    logger.info({ event: 'worker.stopped' });
+    workerRunning = false;
   }
-
-  logger.info({ event: 'worker.stopped' });
-  workerRunning = false;
 }
 
 /**

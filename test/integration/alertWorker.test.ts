@@ -107,13 +107,29 @@ describe('Alert Worker: Integration Tests', () => {
         reason: 'MISSED',
         status: 'PENDING',
         attempts: 0,
-        nextAttemptAt: new Date(),
+        nextAttemptAt: new Date(Date.now() - 10000),
         createdAt: new Date(),
         ...overrides,
       },
     });
 
     return { incident, alert };
+  }
+
+  async function waitForAlertCondition(
+    alertId: string,
+    predicate: (alert: Alert) => boolean,
+    timeoutMs = 5000,
+  ): Promise<Alert | null> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      const alert = await prisma.alert.findUnique({ where: { id: alertId } });
+      if (alert && predicate(alert)) {
+        return alert;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return await prisma.alert.findUnique({ where: { id: alertId } });
   }
 
   describe('Worker Lifecycle', () => {
@@ -163,10 +179,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-
-      // Wait for processing
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
+      await waitForAlertCondition(alert.id, (a) => a.status === 'SENT');
       await stopAlertWorker();
       await workerPromise;
 
@@ -203,7 +216,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.attempts >= 1);
       await stopAlertWorker();
       await workerPromise;
 
@@ -251,7 +264,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.status === 'FAILED');
       await stopAlertWorker();
       await workerPromise;
 
@@ -298,7 +311,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.status === 'SUPPRESSED');
       await stopAlertWorker();
       await workerPromise;
 
@@ -341,7 +354,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.status === 'SUPPRESSED');
       await stopAlertWorker();
       await workerPromise;
 
@@ -388,7 +401,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.status === 'SUPPRESSED');
       await stopAlertWorker();
       await workerPromise;
 
@@ -439,7 +452,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.status === 'SUPPRESSED');
       await stopAlertWorker();
       await workerPromise;
 
@@ -480,7 +493,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.status === 'SUPPRESSED');
       await stopAlertWorker();
       await workerPromise;
 
@@ -515,7 +528,7 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await waitForAlertCondition(alert.id, (a) => a.status === 'SENT');
       await stopAlertWorker();
       await workerPromise;
 
@@ -594,7 +607,14 @@ describe('Alert Worker: Integration Tests', () => {
       };
 
       const workerPromise = startAlertWorker(config);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const pollStart = Date.now();
+      while (Date.now() - pollStart < 15000) {
+        const count = await prisma.alert.count({
+          where: { id: { in: [a1.id, a2.id, a3.id] }, status: 'SENT' },
+        });
+        if (count === 3) break;
+        await new Promise((r) => setTimeout(r, 50));
+      }
       await stopAlertWorker();
       await workerPromise;
 

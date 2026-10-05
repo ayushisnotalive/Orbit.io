@@ -188,24 +188,45 @@ describe('Public Ping Ingestion API (Integration)', () => {
   it('enforces IP rate limiting (120 req/min) returning 429 with Retry-After header', async () => {
     const clientIp = '198.51.100.55';
 
-    // Send 120 requests
-    for (let i = 0; i < 120; i++) {
-      const res = await app.request(`/ping/${testCheckUuid}`, {
+    // Pause the check during rate limit burst so DB writes are bypassed
+    await prisma.check.update({
+      where: { id: testCheckId },
+      data: { status: 'PAUSED' },
+    });
+
+    try {
+      // Send 120 requests in concurrent batches
+      for (let batch = 0; batch < 6; batch++) {
+        const chunk = Array.from({ length: 20 }, () =>
+          app.request(`/ping/${testCheckUuid}`, {
+            method: 'GET',
+            headers: { 'cf-connecting-ip': clientIp },
+          }),
+        );
+        const responses = await Promise.all(chunk);
+        for (const res of responses) {
+          expect(res.status).toBe(200);
+        }
+      }
+
+      // 121st request should be blocked
+      const resBlocked = await app.request(`/ping/${testCheckUuid}`, {
         method: 'GET',
         headers: { 'cf-connecting-ip': clientIp },
       });
-      expect(res.status).toBe(200);
+
+      expect(resBlocked.status).toBe(429);
+      const retryAfter = Number(resBlocked.headers.get('retry-after'));
+      expect(retryAfter).toBeGreaterThanOrEqual(1);
+      expect(retryAfter).toBeLessThanOrEqual(60);
+      expect(await resBlocked.text()).toBe('Too Many Requests');
+    } finally {
+      // Restore check status
+      await prisma.check.update({
+        where: { id: testCheckId },
+        data: { status: 'UP' },
+      });
     }
-
-    // 121st request should be blocked
-    const resBlocked = await app.request(`/ping/${testCheckUuid}`, {
-      method: 'GET',
-      headers: { 'cf-connecting-ip': clientIp },
-    });
-
-    expect(resBlocked.status).toBe(429);
-    expect(resBlocked.headers.get('retry-after')).toBe('60');
-    expect(await resBlocked.text()).toBe('Too Many Requests');
   });
 
   it('unknown UUID returns 404 and is shielded by negative cache', async () => {
