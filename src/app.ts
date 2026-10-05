@@ -91,6 +91,7 @@ app.route('/auth', authRouter);
 
 // Webhook Routes (Telegram, Billing, etc.)
 app.route('/webhooks/billing', billingWebhooksRouter);
+app.route('/webhooks/biling', billingWebhooksRouter);
 app.route('/webhooks', webhooksRouter);
 
 // Admin Operations Console
