@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>OrbitPing Launch Video</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #080c14;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background-color: #080c14;
+      }
+      .bg-glow-1 {
+        position: absolute;
+        top: -100px;
+        left: -100px;
+        width: 900px;
+        height: 900px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 65%);
+        pointer-events: none;
+        z-index: 1;
+      }
+      .bg-glow-2 {
+        position: absolute;
+        bottom: -150px;
+        right: -150px;
+        width: 1000px;
+        height: 1000px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 65%);
+        pointer-events: none;
+        z-index: 1;
+      }
+      .grid-lines {
+        position: absolute;
+        inset: 0;
+        background-image: 
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+        pointer-events: none;
+        z-index: 2;
+      }
+      .scene-slot {
+        position: absolute;
+        inset: 0;
+        width: 1920px;
+        height: 1080px;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="20"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="bg-glow-1"></div>
+      <div class="bg-glow-2"></div>
+      <div class="grid-lines"></div>
+
+      <!-- Background Music Track -->
+      <audio
+        id="bgm"
+        data-start="0"
+        data-duration="20"
+        data-volume="0.9"
+        data-fade-in="0.3"
+        data-fade-out="1.5"
+        src="assets/music/happy-beats-business-moves-vol-10-by-ende-dot-app.mp3"
+      ></audio>
+
+      <!-- Motion Design SFX Elements -->
+      <audio id="sfx-key" data-start="0.6" data-duration="0.02" data-volume="0.5" src="assets/sfx/click_003.ogg"></audio>
+      <audio id="sfx-impact" data-start="3.5" data-duration="0.2" data-volume="0.8" src="assets/sfx/impactSoft_medium_001.ogg"></audio>
+      <audio id="sfx-card1" data-start="8.2" data-duration="0.2" data-volume="0.6" src="assets/sfx/card-slide-1.ogg"></audio>
+      <audio id="sfx-card2" data-start="9.8" data-duration="0.2" data-volume="0.6" src="assets/sfx/card-slide-1.ogg"></audio>
+      <audio id="sfx-alert" data-start="11.4" data-duration="0.2" data-volume="0.9" src="assets/sfx/impactSoft_medium_004.ogg"></audio>
+      <audio id="sfx-bell" data-start="16.9" data-duration="1.5" data-volume="0.8" src="assets/sfx/impactBell_heavy_000.ogg"></audio>
+
+      <!-- Sub-compositions with stable edit IDs -->
+      <div id="scene-1-slot" class="scene-slot" data-composition-id="scene1" data-composition-src="compositions/scene1.html" data-start="0" data-duration="3.5"></div>
+      <div id="scene-2-slot" class="scene-slot" data-composition-id="scene2" data-composition-src="compositions/scene2.html" data-start="3.5" data-duration="4.0"></div>
+      <div id="scene-3-slot" class="scene-slot" data-composition-id="scene3" data-composition-src="compositions/scene3.html" data-start="7.5" data-duration="5.5"></div>
+      <div id="scene-4-slot" class="scene-slot" data-composition-id="scene4" data-composition-src="compositions/scene4.html" data-start="13" data-duration="3.5"></div>
+      <div id="scene-5-slot" class="scene-slot" data-composition-id="scene5" data-composition-src="compositions/scene5.html" data-start="16.5" data-duration="3.5"></div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      // Ambient atmospheric breathing across 20s
+      tl.to(".bg-glow-1", { scale: 1.15, opacity: 0.8, yoyo: true, repeat: 10, duration: 2.0 }, 0);
+      tl.to(".bg-glow-2", { scale: 1.2, opacity: 0.9, yoyo: true, repeat: 10, duration: 2.2 }, 0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

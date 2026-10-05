@@ -1,0 +1,5 @@
+Crontabs fail silently. OrbitPing doesn't.
+
+Inverted dead-man's switch monitoring for background workers and scheduled jobs — zero false alarms, sub-200ms ping ingestion, and instant multi-channel dispatch.
+
+https://orbitping.io

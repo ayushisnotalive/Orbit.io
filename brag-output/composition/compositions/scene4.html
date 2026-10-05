@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #080c14;
+        color: #f8fafc;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #080c14;
+      }
+      .alert-banner {
+        width: 1100px;
+        background: rgba(239, 68, 68, 0.14);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        border-radius: 12px;
+        padding: 16px 28px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 36px;
+        box-shadow: 0 10px 30px rgba(239, 68, 68, 0.2);
+      }
+      .pulse-dot-red {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ef4444;
+        box-shadow: 0 0 12px #ef4444;
+      }
+      .channels-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 22px;
+        width: 1200px;
+      }
+      .channel-card {
+        background: #0f172a;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 28px 20px;
+        text-align: center;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6);
+      }
+      .channel-icon {
+        font-size: 40px;
+        margin-bottom: 14px;
+      }
+      .channel-name {
+        font-size: 19px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #f8fafc;
+      }
+      .channel-status {
+        font-size: 14px;
+        color: #34d399;
+        font-family: 'JetBrains Mono', monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="scene4" data-width="1920" data-height="1080">
+      <div id="s4-content" style="display: flex; flex-direction: column; align-items: center;">
+        <div id="s4-alert-banner" class="alert-banner">
+          <div class="pulse-dot-red"></div>
+          <span style="font-size: 20px; font-weight: 700; color: #fca5a5;">INCIDENT OPENED: stripe-recon-cron missed scheduled deadline</span>
+          <span style="margin-left: auto; font-family: monospace; font-size: 14px; color: #cbd5e1;">Atomic Postgres CTE &bull; Dispatched in 0.08s</span>
+        </div>
+
+        <h2 id="s4-heading" style="font-size: 44px; font-weight: 800; margin-bottom: 36px; text-align: center; letter-spacing: -0.02em;">
+          Instant Multi-Channel Alert Delivery
+        </h2>
+
+        <div class="channels-grid">
+          <div id="s4-chan-1" class="channel-card">
+            <div class="channel-icon">✉️</div>
+            <div class="channel-name">Resend Email</div>
+            <div class="channel-status">&check; Sent (0.12s)</div>
+          </div>
+          <div id="s4-chan-2" class="channel-card">
+            <div class="channel-icon">💬</div>
+            <div class="channel-name">Slack &amp; Discord</div>
+            <div class="channel-status">&check; Sent (0.09s)</div>
+          </div>
+          <div id="s4-chan-3" class="channel-card">
+            <div class="channel-icon">📱</div>
+            <div class="channel-name">Telegram Bot</div>
+            <div class="channel-status">&check; Sent (0.05s)</div>
+          </div>
+          <div id="s4-chan-4" class="channel-card">
+            <div class="channel-icon">⚡</div>
+            <div class="channel-name">Signed Webhooks</div>
+            <div class="channel-status">&check; HMAC-SHA256</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#s4-alert-banner", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.1);
+      tl.fromTo("#s4-heading", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45 }, 0.25);
+      
+      tl.fromTo("#s4-chan-1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.4)" }, 0.55);
+      tl.fromTo("#s4-chan-2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.4)" }, 0.85);
+      tl.fromTo("#s4-chan-3", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.4)" }, 1.15);
+      tl.fromTo("#s4-chan-4", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: "back.out(1.4)" }, 1.45);
+
+      tl.to("#s4-content", { opacity: 0, scale: 1.04, duration: 0.4, ease: "power2.in" }, 3.1);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["scene4"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
