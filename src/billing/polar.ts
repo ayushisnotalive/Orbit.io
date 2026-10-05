@@ -102,14 +102,41 @@ export class PolarBillingProvider implements BillingProvider {
 
     const bodyBuffer = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody, 'utf8');
 
-    // Support standard hex HMAC-SHA256
-    const hmacHex = crypto.createHmac('sha256', secret).update(bodyBuffer).digest('hex');
-    const hmacBase64 = crypto.createHmac('sha256', secret).update(bodyBuffer).digest('base64');
+    // 1. Support Standard Webhooks (Svix/Polar specification with webhook-id and webhook-timestamp)
+    const webhookId = headers['webhook-id'];
+    const webhookTimestamp = headers['webhook-timestamp'];
+    if (webhookId && webhookTimestamp) {
+      const keyBuffer = secret.startsWith('whsec_')
+        ? Buffer.from(secret.slice(6), 'base64')
+        : Buffer.from(secret, 'utf8');
 
-    // Handle comma-separated format (e.g. v1,hash)
-    const sigTokens = signature.split(',').map((t) => t.trim());
+      const toSign = `${webhookId}.${webhookTimestamp}.${bodyBuffer.toString('utf8')}`;
+      const expectedBase64 = crypto.createHmac('sha256', keyBuffer).update(toSign).digest('base64');
+
+      const tokens = signature.split(/[\s,]+/).map((t) => t.trim());
+      for (const token of tokens) {
+        const cleanToken = token.startsWith('v1=') ? token.slice(3) : token;
+        try {
+          if (cleanToken.length === expectedBase64.length) {
+            if (crypto.timingSafeEqual(Buffer.from(cleanToken), Buffer.from(expectedBase64))) {
+              return true;
+            }
+          }
+        } catch {
+          // Continue
+        }
+      }
+    }
+
+    // 2. Support standard direct HMAC-SHA256 (hex and base64)
+    const secretKey = secret.startsWith('whsec_') ? Buffer.from(secret.slice(6), 'base64') : secret;
+    const hmacHex = crypto.createHmac('sha256', secretKey).update(bodyBuffer).digest('hex');
+    const hmacBase64 = crypto.createHmac('sha256', secretKey).update(bodyBuffer).digest('base64');
+
+    // Handle comma or space-separated format (e.g. v1,hash)
+    const sigTokens = signature.split(/[\s,]+/).map((t) => t.trim());
     for (const token of sigTokens) {
-      const cleanToken = token.startsWith('v1=') || token.startsWith('v1,') ? token.slice(3) : token;
+      const cleanToken = token.startsWith('v1=') ? token.slice(3) : token;
       try {
         if (cleanToken.length === hmacHex.length) {
           if (crypto.timingSafeEqual(Buffer.from(cleanToken, 'hex'), Buffer.from(hmacHex, 'hex'))) {
