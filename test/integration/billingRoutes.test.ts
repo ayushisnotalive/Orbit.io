@@ -175,7 +175,7 @@ describe('Billing Routes & Downgrade Enforcement', () => {
           scheduleType: 'PERIOD',
           periodSeconds: 900,
         }),
-      ).rejects.toThrow(/limit of 10 checks has been reached/i);
+      ).rejects.toThrow(/limit of 5 checks has been reached/i);
     });
 
     it('honors 7-day past-due grace period before downgrading effective plan to FREE', async () => {

@@ -132,7 +132,12 @@ authRouter.post('/magic-link', async (c) => {
     turnstileToken,
   });
 
-  if (c.req.header('accept')?.includes('application/json')) {
+  const wantsJson =
+    c.req.header('accept')?.includes('application/json') ||
+    contentType.includes('application/json') ||
+    c.req.header('x-requested-with') === 'XMLHttpRequest';
+
+  if (wantsJson) {
     return c.json({
       ok: true,
       message: 'If the email is valid, a login link has been sent.',
@@ -182,7 +187,13 @@ authRouter.post('/logout', requireAuth, async (c) => {
 
   logger.info({ event: 'auth.logout', userId: c.get('user').id });
 
-  if (c.req.header('accept')?.includes('application/json')) {
+  const wantsJson =
+    c.req.header('accept')?.includes('application/json') ||
+    c.req.header('x-requested-with') === 'XMLHttpRequest' ||
+    (c.req.header('content-type') || '').includes('application/json') ||
+    !(c.req.header('accept') || '').includes('text/html');
+
+  if (wantsJson) {
     return c.json({ ok: true });
   }
 
@@ -200,7 +211,13 @@ authRouter.post('/logout-all', requireAuth, async (c) => {
 
   logger.info({ event: 'auth.logout_all', userId: user.id, revokedCount: count });
 
-  if (c.req.header('accept')?.includes('application/json')) {
+  const wantsJson =
+    c.req.header('accept')?.includes('application/json') ||
+    c.req.header('x-requested-with') === 'XMLHttpRequest' ||
+    (c.req.header('content-type') || '').includes('application/json') ||
+    !(c.req.header('accept') || '').includes('text/html');
+
+  if (wantsJson) {
     return c.json({ ok: true, revokedCount: count });
   }
 
